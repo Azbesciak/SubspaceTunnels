@@ -19,11 +19,11 @@ Należy zapewnić, by żaden rodzaj (np. kurierów albo obcych) nie zmonopolizow
 	   - w podprzestrzeni mogą być jedynie inni kurierzy
 	   - obecność kuriera nie jest ograniczeniem dla innych
 	   - transport szybszy niż pasażera
-	 2. jeżeli obcy:
+    2. jeżeli obcy:
 	   - brak ograniczeń na typ obecnych w podprzestrzeni podróżników
 	   - gdy w podprzestrzeni obcy, za nim mogą pojawić sie jedynie inni obcy
 	   - transport wolniejszy niż pasażera
-	 3. jeżeli wycieczka:
+    3. jeżeli wycieczka:
 	   - w podprzestrzeni nie może być obcego przed dodaniem wycieczki
 	   
 #### Prędkości:
