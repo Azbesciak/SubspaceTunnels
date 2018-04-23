@@ -52,6 +52,7 @@ while (true) {
     val req = generateRequest()
     addRequestToRequestsQueue(req)
     incrementTimerAndSendRequest(req)
+    // we can also implement array of ts for each process and wait only for those, which we know their timer is older than ours.
     waitUntilAllWillAccept()
     waitUntilRequestCanBeInvoked(req)
     invoke(req)
