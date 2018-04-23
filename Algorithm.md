@@ -24,7 +24,8 @@ data class Request(
     val passengersNumber: Int,
     val time: Long,
     requestId: String,
-    senderId: Int
+    senderId: Int,
+    isRunning: Boolean = false
 ): Message(requestId, senderId);
 
 data class Acceptance(
@@ -50,11 +51,58 @@ while (true) {
     delay(random)
     val req = generateRequest()
     addRequestToRequestsQueue(req)
+    incrementTimerAndSendRequest(req)
     waitUntilAllWillAccept()
-    moveRequestToExecutedQueue(req)
+    waitUntilRequestCanBeInvoked(req)
     invoke(req)
-    removeFromExecutedQueue(req)
-    sendRelease(Relase.from(req))
+    removeFromRequestsQueue(req)
+    sendRelease(Release.from(req))
+}
+
+fun sortRequests() {
+    requests.sortBy { req -> req.time } thenBy {req -> req.requestId}
+    requests.notifyListener()
+}
+
+fun addRequestToRequestsQueue(req) {
+    requests.add(req) // updates empty places also.
+    sortRequests()
+}
+
+fun waitUntilRequestCanBeInvoked(req) {
+    requests.addListener { currentRequests ->
+        val (notRunningRequests: List<Requests>, runningRequests: List<Request>) = currentRequests.groupBy {it.isRunning}
+        if (currentRequests.emptySlots == 0) // if lower throw.
+		return
+	for (r in notRunningRequests) { //we assume it is sorted by timers and ids
+	    if (r.passengersNumber <= currentRequests.emptySlots) {
+	    	when (r.passengerType) {
+		    COURIER -> 
+		    	if (runningRequests.containsOnlyCouriers()) {
+			    val wasMyRequest = runRequest(runningRequests, r, req)
+			    if (wasMyRequest) return else continue
+			}
+			return
+		    PASSENGER ->
+		        if (runningRequests.alienCount() == 0) {
+			   val wasMyRequest = runRequest(runningRequests, r, req)
+			   if (wasMyRequest) return else continue
+			}
+			return
+		    ALIEN -> 
+		        val wasMyRequest = runRequest(runningRequests, r, req)
+			if (wasMyRequest) return else continue
+                }
+	    }
+	}
+    }
+}
+
+fun runRequest(runningRequests:List<Request>, toRun: Request, ownRequest: Request): Boolean {
+    r.isRunning = true
+    runningRequests.add(r)
+    if (r == req) detachListener();return true
+    else return false
 }
 ````
 
@@ -62,28 +110,28 @@ while (true) {
 ````kotlin
 while (true) {
     val mes = receiveMessage()
+    updateTimer(mes)
     if (mes is Request) {
         updateTimer(mes)
         addRequestToRequestsQueue(req)
     } else if (mes is Release) {
-        removeFromExecutedQueue(Request.from(mes))
+        removeFromRequestsQueue(Request.from(mes))
     }
+}
+
+fun updateTimer(mes) {
+	time = max(mes.time, this.time) + 1
 }
 ````
 
 ##### Proces logiczny rozstrzygający o wykonywanych obecnie zadaniach
 ````kotlin
 while (true) {
-    sortRequests()
-    forEachRequest { req ->
-        if (canInvoke(req) {
-            sendAccept(req)
-            moveRequestToExecutedQueue(req)
-        }
+    List<Request> reqs = receiveRequests()
+    reqs.forEach { req ->
+    	updateTimer(req)
+	addRequestToRequestsQueue(req)
+    	sendAccept(req)
     }
-}
-
-fun sortRequests() {
-    requests.sortBy { req -> (time - req.time) * req.passengerType } thenBy {req -> req.requestId}
 }
 ````
