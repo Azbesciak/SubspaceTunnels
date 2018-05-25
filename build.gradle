@@ -1,0 +1,77 @@
+buildscript {
+    ext.kotlin_version = '1.2.41'
+
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.1'
+    }
+}
+
+group 'cs.pr'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'kotlin'
+apply plugin: 'application'
+apply plugin: 'java'
+apply plugin: 'com.github.johnrengelman.shadow'
+
+mainClassName = 'cs.pr.subspacetunnels.SubspaceTunnels'
+
+def mpjHome = System.getenv('MPJ_HOME')
+def mpjStarter = files("$mpjHome/lib/starter.jar")
+def mpjJar = files("$mpjHome/lib/mpj.jar")
+def mpjClasspath = sourceSets.main.runtimeClasspath - mpjJar
+
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    // https://mvnrepository.com/artifact/com.jcabi/jcabi-ssh
+    compile group: 'com.jcabi', name: 'jcabi-ssh', version: '1.6'
+    compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:0.21"
+    compile mpjJar
+}
+jar {
+    manifest {
+        attributes(
+                'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
+                'Main-Class': 'cs.pr.subspacetunnels.SubspaceTunnels'
+        )
+    }
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+}
+
+compileKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+
+kotlin {
+    experimental {
+        coroutines 'enable'
+    }
+}
+
+run {
+    main = 'runtime.starter.MPJRun'
+    classpath = mpjStarter
+    args mainClassName, '-cp', mpjClasspath.asPath, '-np', 3, "-dev", "niodev"
+    dependsOn classes
+}
+
+task findMachines(type: JavaExec) {
+    classpath sourceSets.main.runtimeClasspath
+    main = "cs.pr.subspacetunnels.SshConnectorChecker"
+    standardInput = System.in
+}
+
