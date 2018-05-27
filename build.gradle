@@ -37,6 +37,7 @@ dependencies {
     // https://mvnrepository.com/artifact/com.jcabi/jcabi-ssh
     compile group: 'com.jcabi', name: 'jcabi-ssh', version: '1.6'
     compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:0.21"
+    compile 'io.github.microutils:kotlin-logging:1.5.4'
     compile mpjJar
 }
 jar {
@@ -65,7 +66,7 @@ kotlin {
 run {
     main = 'runtime.starter.MPJRun'
     classpath = mpjStarter
-    args mainClassName, '-cp', mpjClasspath.asPath, '-np', 3, "-dev", "niodev"
+    args mainClassName, '-cp', mpjClasspath.asPath, '-np', 3//, "-dev", "niodev"
     dependsOn classes
 }
 

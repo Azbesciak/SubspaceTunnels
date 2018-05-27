@@ -10,7 +10,7 @@
 ## Algorytm
 ### Struktury
 ```` kotlin
-enum class PasengerType {
+enum class PassengerType {
     COMMON, COURIER, ALIEN
 }
 
