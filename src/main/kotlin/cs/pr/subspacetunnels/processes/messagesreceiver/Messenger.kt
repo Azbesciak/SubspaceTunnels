@@ -9,8 +9,6 @@ class Messenger(world: WorldProxy, subSpace: SubSpace): Process(world, subSpace)
         if (isRunning.getAndSet(true)) return
         while (isRunning.get()) {
             val message = world.receiveRequests()
-            if (message.requestId == Request.END.requestId)
-                return
             if (message.isRunning) {
                 log("received release $message")
                 subSpace.free(message)

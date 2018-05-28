@@ -23,6 +23,10 @@ class WorldProxy(private val world: Intracomm) {
         sendToAll(release, Tag.REQUEST_TAG)
     }
 
+    private inline fun <reified M: Message>sendToSelf(request: M, tag: Tag) {
+        send(request, rank(), tag)
+    }
+
     private fun sendToAll(message: Request, tag: Tag) {
         message.time = ++time
         val reqPacked = arrayOf(message)
@@ -51,28 +55,18 @@ class WorldProxy(private val world: Intracomm) {
     }
 
     fun sendAccept(acceptance: Acceptance, receiver: Int) {
-        acceptance.time = ++time
         log("sending accept ${acceptance.acceptId} for request ${acceptance.requestId}")
-        val accPacked = arrayOf(acceptance)
-        world.Send(accPacked, 0, 1, MPI.OBJECT, receiver, Tag.ACCEPT_TAG.num)
+        send(acceptance, receiver, Tag.ACCEPT_TAG)
     }
 
-    fun stopTheWorld() {
-        log("requested stop the world")
-        sendToAll(Request.END, Tag.TECH_MESSAGE)
-        sendToAll(Request.END, Tag.REQUEST_TAG)
-    }
-
-    fun waitForWorldEnd() {
-        val worldEndMessage = receiveMessages<Message>(Tag.TECH_MESSAGE)
-        if (worldEndMessage.requestId != Request.END.requestId)
-            throw Error("Invalid world end message")
+    private inline fun <reified M: Message>send(message: M, receiver: Int, tag: Tag) {
+        message.time = ++time
+        val accPacked = arrayOf(message)
+        world.Isend(accPacked, 0, 1, MPI.OBJECT, receiver, tag.num)
     }
 
     enum class Tag(val num: Int, val text: String) {
         REQUEST_TAG(1, "Request/Release"),
-        RELEASE_TAG(2, "Request/Release"),
-        ACCEPT_TAG(3, "Accept"),
-        TECH_MESSAGE(4, "Tech")
+        ACCEPT_TAG(2, "Accept")
     }
 }

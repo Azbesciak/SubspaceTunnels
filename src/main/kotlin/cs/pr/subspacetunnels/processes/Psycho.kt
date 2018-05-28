@@ -17,7 +17,4 @@ class Psycho(world: WorldProxy) : Process(world, SubSpace()) {
         subprocesses.forEach { it.stop() }
     }
 
-    fun waitForWorldEnd() = world.waitForWorldEnd()
-
-    fun stopTheWorld() = world.stopTheWorld()
 }

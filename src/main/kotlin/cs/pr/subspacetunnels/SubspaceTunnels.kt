@@ -3,9 +3,11 @@ package cs.pr.subspacetunnels
 import cs.pr.subspacetunnels.processes.Process.Companion.launch
 import cs.pr.subspacetunnels.processes.Psycho
 import cs.pr.subspacetunnels.world.Informer
+import cs.pr.subspacetunnels.world.Informer.log
 import cs.pr.subspacetunnels.world.WorldProxy
 import mpi.MPI
-import java.util.*
+import java.io.File
+import kotlin.system.exitProcess
 
 object SubspaceTunnels {
     @JvmStatic
@@ -20,24 +22,22 @@ object SubspaceTunnels {
         launch {
             psycho.run()
         }
-        waitForTheEnd(rank, psycho)
+        waitForTheEnd(psycho)
         MPI.Finalize()
+        exitProcess(0)
     }
 
-    private fun waitForTheEnd(rank: Int, psycho: Psycho) {
-        when (rank) {
-            0 -> {
-                val sc = Scanner(System.`in`)
-                while (sc.hasNext()) {
-                    if (sc.next() == "end") {
-                        psycho.stopTheWorld()
-                        break
-                    }
-                }
+    private fun waitForTheEnd(psycho: Psycho) {
+        while(true) {
+            val file = File("status")
+            if (file.exists() && file.readLines().contains("end")) {
+                psycho.stop()
+                log("End requested")
+                return
+            } else {
+                Thread.sleep(1000)
             }
-            else -> psycho.waitForWorldEnd()
         }
-        psycho.stop()
     }
 }
 

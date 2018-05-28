@@ -25,7 +25,6 @@ class Request(
         var isRunning: Boolean = false
 ): Message(requestId, senderId) {
     companion object {
-        val END = Request(requestId = "END", passengerType = PassengerType.NULL, passengersNumber = -1)
         var isVerbose = false
     }
 
