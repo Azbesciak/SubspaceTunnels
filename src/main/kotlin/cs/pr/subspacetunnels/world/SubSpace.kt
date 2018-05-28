@@ -68,9 +68,10 @@ class SubSpace(private val running: MutableList<Request> = CopyOnWriteArrayList(
 
     private fun List<Request>.sortedByTime() =
             sortedWith(compareBy(
-                Request::senderId,
+                Request::time,
                 { it.passengerType.speed },
-                Request::passengersNumber
+                Request::passengersNumber,
+                Request::senderId
             ))
 
     private fun Request.canRun(): Boolean {
