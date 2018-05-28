@@ -65,7 +65,7 @@ class WorldProxy(private val world: Intracomm) {
     private fun synchronizeWithAcceptSender(acceptance: Acceptance) {
         val requests = lastRequests[acceptance.senderId]!!
         log("Check already sent requests from ${acceptance.senderId}: $requests")
-        var requestWasFound = requests.isEmpty()
+        var requestWasFound = acceptance.lastSentRequestId == null
         while (!requestWasFound) {
             val lastRequest = requests.indexOfFirst { it.requestId == acceptance.lastSentRequestId }
             if (lastRequest >= 0) {
@@ -75,6 +75,7 @@ class WorldProxy(private val world: Intracomm) {
                 }
                 requestWasFound = true
             } else {
+                log("waiting for ${acceptance.lastSentRequestId}")
                 Thread.sleep(SYNCH_DELAY)
             }
         }

@@ -91,8 +91,8 @@ class SubSpace(private val running: MutableList<Request> = CopyOnWriteArrayList(
 
     override fun toString(): String {
         return """SubSpace(
-            |   running=$running,
-            |   waiting=$waiting,
+            |   running=${running.sortedByTime()},
+            |   waiting=${waiting.sortedByTime()},
             |   currentRequest=$currentRequest,
             |   emptySlots=$emptySlots
             |)""".trimMargin()

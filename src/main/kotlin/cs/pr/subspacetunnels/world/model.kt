@@ -37,14 +37,14 @@ class Request(
 
     override fun toString(): String {
         return when (logType) {
-            LogType.VERBOSE -> "${if (isRunning) "Release" else "Request"}(passengerType=$passengerType," +
+            LogType.VERBOSE -> "${if (isRunning) "Release" else "Request"}(type=$passengerType," +
                     " passengersNumber=$passengersNumber," +
                     " isRunning=$isRunning," +
                     " requestId=$requestId," +
                     " senderId=$senderId," +
                     " time=$time)"
             LogType.BASIC -> requestId
-            LogType.TRAVEL -> "{$passengerType:$passengersNumber($requestId)}"
+            LogType.TRAVEL -> "{$passengerType:$passengersNumber($requestId|$senderId|$time)}"
         }
     }
 }

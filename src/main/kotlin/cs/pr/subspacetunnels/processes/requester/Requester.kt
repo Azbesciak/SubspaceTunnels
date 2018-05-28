@@ -6,9 +6,9 @@ import cs.pr.subspacetunnels.world.Informer.log
 
 class Requester(world: WorldProxy, subSpace: SubSpace) : Process(world, subSpace) {
     companion object {
-        private const val MIN_DELAY = 500
-        private const val MAX_DELAY = 3000
-        private const val SPEED_UNIT_VALUE = 500
+        private const val MIN_DELAY = 50
+        private const val MAX_DELAY = 300
+        private const val SPEED_UNIT_VALUE = 50
     }
     private val requestGenerator = RequestGenerator(id, gen)
 
