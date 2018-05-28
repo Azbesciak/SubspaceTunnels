@@ -4,7 +4,7 @@ import java.io.Serializable
 import java.util.*
 
 enum class PassengerType(val speed: Int) {
-    COMMON(2), COURIER(1), ALIEN(3);
+    COMMON(2), COURIER(1), ALIEN(3), NULL(999);
 }
 
 open class Message(
@@ -20,21 +20,31 @@ open class Message(
 class Request(
         val passengerType: PassengerType,
         val passengersNumber: Int,
-        requestId: String,
-        senderId: Int,
+        requestId: String = "",
+        senderId: Int = 0,
         var isRunning: Boolean = false
-): Message(requestId, senderId)
+): Message(requestId, senderId) {
+    companion object {
+        val END = Request(requestId = "END", passengerType = PassengerType.NULL, passengersNumber = -1)
+        var isVerbose = false
+    }
+
+    override fun toString(): String {
+        return if (isVerbose) {
+            "${if (isRunning) "Release" else "Request"}(passengerType=$passengerType," +
+                    " passengersNumber=$passengersNumber," +
+                    " isRunning=$isRunning," +
+                    " requestId=$requestId," +
+                    " senderId=$senderId," +
+                    " time=$time)"
+        } else {
+            requestId
+        }
+    }
+}
 
 class Acceptance(
         val acceptId: String,
         requestId: String,
         senderId: Int
 ): Message(requestId, senderId)
-
-class Release(
-        val messageId: String,
-        requestId: String,
-        senderId: Int
-): Message(requestId, senderId)
-
-typealias SubspaceObserver = (running: List<Request>, waiting: List<Request>) ->Unit

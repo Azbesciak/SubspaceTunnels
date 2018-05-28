@@ -6,6 +6,12 @@ import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
 abstract class Process(protected val world: WorldProxy, protected val subSpace: SubSpace) {
+    companion object {
+        inline fun launch(crossinline f: () -> Unit) {
+            Thread { f() }.start()
+        }
+    }
+
     protected val isRunning = AtomicBoolean(false)
     protected val id = world.rank()
     protected val total = world.size()
@@ -13,5 +19,6 @@ abstract class Process(protected val world: WorldProxy, protected val subSpace: 
     open fun stop() {
         isRunning.set(false)
     }
-    abstract suspend fun run()
+
+    abstract fun run()
 }

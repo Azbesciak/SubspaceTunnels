@@ -32,5 +32,6 @@ class RequestGenerator(private val id: Int, private val gen: Random) {
             when (passengerType) {
                 PassengerType.COURIER, PassengerType.ALIEN -> 1
                 PassengerType.COMMON -> gen.nextInt(SubSpace.MAX_PASSENGERS)
+                PassengerType.NULL -> throw Error("null type")
             }
 }

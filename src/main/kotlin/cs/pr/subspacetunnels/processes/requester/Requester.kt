@@ -2,7 +2,7 @@ package cs.pr.subspacetunnels.processes.requester
 
 import cs.pr.subspacetunnels.processes.Process
 import cs.pr.subspacetunnels.world.*
-import kotlinx.coroutines.experimental.delay
+import cs.pr.subspacetunnels.world.Informer.log
 
 class Requester(world: WorldProxy, subSpace: SubSpace) : Process(world, subSpace) {
     companion object {
@@ -12,8 +12,9 @@ class Requester(world: WorldProxy, subSpace: SubSpace) : Process(world, subSpace
     }
     private val requestGenerator = RequestGenerator(id, gen)
 
-    override suspend fun run() {
+    override fun run() {
         if (isRunning.getAndSet(true)) return
+        log("Started requester...")
         while (isRunning.get()) {
             generateRandomDelay()
             val request = requestGenerator.generateRequest()
@@ -27,18 +28,18 @@ class Requester(world: WorldProxy, subSpace: SubSpace) : Process(world, subSpace
         }
     }
 
-    private suspend fun generateRandomDelay() {
+    private fun generateRandomDelay() {
         val wait = gen.nextInt(MAX_DELAY - MIN_DELAY) + MIN_DELAY
-        delay(wait)
+        Thread.sleep(wait.toLong())
     }
 
-    private suspend fun waitTillPassengersWillTransfer(request: Request) {
+    private fun waitTillPassengersWillTransfer(request: Request) {
         val timeRequired = request.passengerType.speed * SPEED_UNIT_VALUE
-        delay(timeRequired)
+        Thread.sleep(timeRequired.toLong())
     }
 
     private fun onTravelFinish(request: Request) {
         subSpace.free(request)
-        world.sendRelease(Release(Message.createId(), request.requestId, id))
+        world.sendRelease(request)
     }
 }

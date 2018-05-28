@@ -1,5 +1,7 @@
 package cs.pr.subspacetunnels.world
 
+import cs.pr.subspacetunnels.world.Informer.log
+import cs.pr.subspacetunnels.world.Informer.time
 import mpi.Intracomm
 import mpi.MPI
 import mu.KLogging
@@ -7,26 +9,21 @@ import java.lang.Math.max
 
 class WorldProxy(private val world: Intracomm) {
     private val bcastReceivers = (0 until world.Size()).filter { it != world.Rank() }.toList()
-    companion object: KLogging()
 
     fun rank() = world.Rank()
     fun size() = world.Size()
 
-    private var time = 0L
-    private fun log(message: String) {
-        logger.info { "[${rank()}|$time] $message" }
-    }
     fun sendRequest(request: Request) {
         log("sending request ${request.requestId}")
-        sendToAll(request, Tag.REQUEST_OR_RELEASE_TAG)
+        sendToAll(request, Tag.REQUEST_TAG)
     }
 
-    fun sendRelease(release: Release) {
-        log("sending release ${release.messageId} for request ${release.requestId}")
-        sendToAll(release, Tag.REQUEST_OR_RELEASE_TAG)
+    fun sendRelease(release: Request) {
+        log("sending release for request ${release.requestId}")
+        sendToAll(release, Tag.REQUEST_TAG)
     }
 
-    private fun sendToAll(message: Message, tag: Tag) {
+    private fun sendToAll(message: Request, tag: Tag) {
         message.time = ++time
         val reqPacked = arrayOf(message)
         bcastReceivers.forEach {
@@ -34,7 +31,8 @@ class WorldProxy(private val world: Intracomm) {
         }
     }
 
-    fun receiveMessage(): Message = receiveMessages(Tag.REQUEST_OR_RELEASE_TAG)
+    fun receiveRequests(): Request = receiveMessages(Tag.REQUEST_TAG)
+
     fun receiveAccepts(request: Request) {
         var left = bcastReceivers - 1
         while(left.isNotEmpty()) {
@@ -56,23 +54,25 @@ class WorldProxy(private val world: Intracomm) {
         acceptance.time = ++time
         log("sending accept ${acceptance.acceptId} for request ${acceptance.requestId}")
         val accPacked = arrayOf(acceptance)
-        world.Isend(accPacked, 0, 1, MPI.OBJECT, receiver, Tag.ACCEPT_TAG.num)
+        world.Send(accPacked, 0, 1, MPI.OBJECT, receiver, Tag.ACCEPT_TAG.num)
     }
 
     fun stopTheWorld() {
         log("requested stop the world")
-        sendToAll(Message("End", -1, time), Tag.TECH_MESSAGE)
+        sendToAll(Request.END, Tag.TECH_MESSAGE)
+        sendToAll(Request.END, Tag.REQUEST_TAG)
     }
 
     fun waitForWorldEnd() {
         val worldEndMessage = receiveMessages<Message>(Tag.TECH_MESSAGE)
-        if (worldEndMessage.requestId != "End")
+        if (worldEndMessage.requestId != Request.END.requestId)
             throw Error("Invalid world end message")
     }
 
     enum class Tag(val num: Int, val text: String) {
-        REQUEST_OR_RELEASE_TAG(1, "Request/Release"),
-        ACCEPT_TAG(2, "Accept"),
+        REQUEST_TAG(1, "Request/Release"),
+        RELEASE_TAG(2, "Request/Release"),
+        ACCEPT_TAG(3, "Accept"),
         TECH_MESSAGE(4, "Tech")
     }
 }

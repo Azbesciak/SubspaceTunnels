@@ -36,7 +36,6 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     // https://mvnrepository.com/artifact/com.jcabi/jcabi-ssh
     compile group: 'com.jcabi', name: 'jcabi-ssh', version: '1.6'
-    compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:0.21"
     compile 'io.github.microutils:kotlin-logging:1.5.4'
     compile mpjJar
 }

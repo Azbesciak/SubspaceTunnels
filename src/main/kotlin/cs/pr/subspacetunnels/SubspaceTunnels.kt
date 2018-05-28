@@ -1,8 +1,9 @@
 package cs.pr.subspacetunnels
 
+import cs.pr.subspacetunnels.processes.Process.Companion.launch
 import cs.pr.subspacetunnels.processes.Psycho
+import cs.pr.subspacetunnels.world.Informer
 import cs.pr.subspacetunnels.world.WorldProxy
-import kotlinx.coroutines.experimental.launch
 import mpi.MPI
 import java.util.*
 
@@ -14,6 +15,7 @@ object SubspaceTunnels {
         val rank = world.Rank()
         val size = world.Size()
         println("$size of $rank is running")
+        Informer.init(rank)
         val psycho = Psycho(WorldProxy(world))
         launch {
             psycho.run()

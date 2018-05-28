@@ -1,10 +1,11 @@
 package cs.pr.subspacetunnels.world
 
-import kotlinx.coroutines.experimental.delay
+import cs.pr.subspacetunnels.world.Informer.log
+import cs.pr.subspacetunnels.world.Informer.wrapMessage
 import java.util.concurrent.CopyOnWriteArrayList
 
-class SubSpace(private val running: MutableList<Request> = CopyOnWriteArrayList<Request>(),
-               private val waiting: MutableList<Request> = CopyOnWriteArrayList<Request>()) {
+class SubSpace(private val running: MutableList<Request> = CopyOnWriteArrayList(),
+               private val waiting: MutableList<Request> = CopyOnWriteArrayList()) {
     companion object {
         const val MAX_PASSENGERS = 10
         const val SUBSPACE_SIZE = 40
@@ -12,12 +13,13 @@ class SubSpace(private val running: MutableList<Request> = CopyOnWriteArrayList<
 
     @Volatile
     private var currentRequest: Request? = null
-
+    @Volatile
     private var emptySlots = SUBSPACE_SIZE
 
     @Synchronized
     fun add(request: Request) {
         waiting.add(request)
+        log("$request added to waiting")
         onChange()
     }
 
@@ -25,18 +27,16 @@ class SubSpace(private val running: MutableList<Request> = CopyOnWriteArrayList<
     private fun runRequest(request: Request) {
         waiting.remove(request)
         request.isRunning = true
+        emptySlots -= request.passengersNumber
+        log("Running request ${request.requestId}")
         running.add(request)
     }
 
     @Synchronized
-    fun free(release: Release) {
-        val request = running.first { it.requestId == release.requestId }
-        free(request)
-    }
-
-    @Synchronized
     fun free(request: Request) {
-        running.remove(request)
+        val wasRemoved = running.removeIf { request.requestId == it.requestId }
+        if (!wasRemoved)
+            throw Error(wrapMessage("Request ${request.requestId} was requested to remove but not present. $this}"))
         emptySlots += request.passengersNumber
         onChange()
     }
@@ -46,34 +46,41 @@ class SubSpace(private val running: MutableList<Request> = CopyOnWriteArrayList<
         add(request)
         suspend {
             while (currentRequest != null)
-                delay(100)
+                Thread.sleep(100)
         }
     }
 
     private fun onChange() {
         if (emptySlots == 0) return
-        waiting.forEach loop@{
-            if (it.passengersNumber > emptySlots)
-                return@loop
-            val canRun = canRun(it)
+        waiting.sortedByTime().forEach loop@{
+            val canRun = it.canRun()
             if (canRun) {
                 runRequest(it)
                 if (currentRequest?.requestId == it.requestId) {
                     currentRequest = null
                 }
             } else {
+                log("could not run $it")
                 return
             }
         }
     }
 
-    private fun canRun(request: Request): Boolean {
-        if (request.passengersNumber > emptySlots)
+    private fun List<Request>.sortedByTime() =
+            sortedWith(compareBy(
+                Request::senderId,
+                { it.passengerType.speed },
+                Request::passengersNumber
+            ))
+
+    private fun Request.canRun(): Boolean {
+        if (passengersNumber > emptySlots)
             return false
-        return when(request.passengerType) {
+        return when (passengerType) {
             PassengerType.COURIER -> running.containsOnlyCouriers()
             PassengerType.COMMON -> running.hasNoAlien()
             PassengerType.ALIEN -> true
+            PassengerType.NULL -> throw Error("Null type")
         }
     }
 
@@ -83,4 +90,12 @@ class SubSpace(private val running: MutableList<Request> = CopyOnWriteArrayList<
     private fun List<Request>.hasNoAlien(): Boolean =
             count { it.passengerType == PassengerType.ALIEN } == 0
 
+    override fun toString(): String {
+        return """SubSpace(
+            |   running=$running,
+            |   waiting=$waiting,
+            |   currentRequest=$currentRequest,
+            |   emptySlots=$emptySlots
+            |)""".trimMargin()
+    }
 }
