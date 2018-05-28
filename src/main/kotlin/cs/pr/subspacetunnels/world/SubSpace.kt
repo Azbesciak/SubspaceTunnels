@@ -44,10 +44,8 @@ class SubSpace(private val running: MutableList<Request> = CopyOnWriteArrayList(
     fun runRequestWhenPossible(request: Request) {
         currentRequest = request
         add(request)
-        suspend {
-            while (currentRequest != null)
-                Thread.sleep(100)
-        }
+        while (currentRequest != null)
+            Thread.sleep(100)
     }
 
     private fun onChange() {

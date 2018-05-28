@@ -15,7 +15,7 @@ class Messenger(world: WorldProxy, subSpace: SubSpace): Process(world, subSpace)
             } else {
                 log("received request $message")
                 subSpace.add(message)
-                world.sendAccept(Acceptance(Message.createId(), message.requestId, id), message.senderId)
+                world.sendAccept(message, message.senderId)
             }
         }
     }

@@ -11,10 +11,15 @@ open class Message(
         val requestId: String,
         val senderId: Int,
         var time: Long = 0L
-): Serializable {
+) : Serializable {
     companion object {
         fun createId() = UUID.randomUUID().toString()
     }
+}
+
+
+enum class LogType {
+    BASIC, VERBOSE, TRAVEL
 }
 
 class Request(
@@ -23,27 +28,31 @@ class Request(
         requestId: String = "",
         senderId: Int = 0,
         var isRunning: Boolean = false
-): Message(requestId, senderId) {
+) : Message(requestId, senderId) {
+
     companion object {
-        var isVerbose = false
+
+        var logType = LogType.BASIC
     }
 
     override fun toString(): String {
-        return if (isVerbose) {
-            "${if (isRunning) "Release" else "Request"}(passengerType=$passengerType," +
+        return when (logType) {
+            LogType.VERBOSE -> "${if (isRunning) "Release" else "Request"}(passengerType=$passengerType," +
                     " passengersNumber=$passengersNumber," +
                     " isRunning=$isRunning," +
                     " requestId=$requestId," +
                     " senderId=$senderId," +
                     " time=$time)"
-        } else {
-            requestId
+            LogType.BASIC -> requestId
+            LogType.TRAVEL -> "{$passengerType:$passengersNumber($requestId)}"
         }
     }
 }
 
+
 class Acceptance(
         val acceptId: String,
         requestId: String,
-        senderId: Int
-): Message(requestId, senderId)
+        senderId: Int,
+        val lastSentRequestId: String?
+) : Message(requestId, senderId)

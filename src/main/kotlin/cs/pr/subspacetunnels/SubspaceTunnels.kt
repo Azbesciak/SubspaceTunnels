@@ -4,6 +4,8 @@ import cs.pr.subspacetunnels.processes.Process.Companion.launch
 import cs.pr.subspacetunnels.processes.Psycho
 import cs.pr.subspacetunnels.world.Informer
 import cs.pr.subspacetunnels.world.Informer.log
+import cs.pr.subspacetunnels.world.LogType
+import cs.pr.subspacetunnels.world.Request
 import cs.pr.subspacetunnels.world.WorldProxy
 import mpi.MPI
 import java.io.File
@@ -17,6 +19,7 @@ object SubspaceTunnels {
         val rank = world.Rank()
         val size = world.Size()
         println("$size of $rank is running")
+        Request.logType = LogType.TRAVEL
         Informer.init(rank)
         val psycho = Psycho(WorldProxy(world))
         launch {
@@ -28,16 +31,32 @@ object SubspaceTunnels {
     }
 
     private fun waitForTheEnd(psycho: Psycho) {
-        while(true) {
+        while (true) {
             val file = File("status")
-            if (file.exists() && file.readLines().contains("end")) {
-                psycho.stop()
-                log("End requested")
-                return
-            } else {
-                Thread.sleep(1000)
-            }
+            if (file.exists())
+                try {
+                    file.readLines().run {
+                        when {
+                            contains("end") -> {
+                                psycho.stop()
+                                log("End requested")
+                                return
+                            }
+                            contains("subspace") -> {
+                                psycho.showSubspace()
+                                Thread.sleep(2000)
+                            }
+                            any {it.findLevel() } -> {
+                                val level = find { it.findLevel() }!!.takeLastWhile { it != '=' }
+                                println("setting level to |$level|")
+                                Informer.loggingLevel = level.trim().toInt()
+                            }
+                            else -> Thread.sleep(1000)
+                        }
+                    }
+                } catch (t: Throwable) {}
         }
     }
+    private fun String.findLevel() = matches("level=\\d+".toRegex())
 }
 

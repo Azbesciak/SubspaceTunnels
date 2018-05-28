@@ -2,6 +2,7 @@ package cs.pr.subspacetunnels.processes
 
 import cs.pr.subspacetunnels.processes.messagesreceiver.Messenger
 import cs.pr.subspacetunnels.processes.requester.Requester
+import cs.pr.subspacetunnels.world.Informer.log
 import cs.pr.subspacetunnels.world.SubSpace
 import cs.pr.subspacetunnels.world.WorldProxy
 
@@ -15,6 +16,10 @@ class Psycho(world: WorldProxy) : Process(world, SubSpace()) {
 
     override fun stop() {
         subprocesses.forEach { it.stop() }
+    }
+
+    fun showSubspace() {
+        log(subSpace.toString(), 999)
     }
 
 }

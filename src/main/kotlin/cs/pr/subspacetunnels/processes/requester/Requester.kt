@@ -39,6 +39,7 @@ class Requester(world: WorldProxy, subSpace: SubSpace) : Process(world, subSpace
     }
 
     private fun onTravelFinish(request: Request) {
+        log("travel of request ${request.requestId} is finished")
         subSpace.free(request)
         world.sendRelease(request)
     }
