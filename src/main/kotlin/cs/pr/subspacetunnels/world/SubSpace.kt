@@ -14,6 +14,11 @@ class SubSpace(private val running: MutableList<Request> = CopyOnWriteArrayList(
     @Volatile
     private var currentRequest: Request? = null
     @Volatile
+    var isWorldEnabled = false
+        private set(value) {
+            field = value
+        }
+    @Volatile
     private var emptySlots = SUBSPACE_SIZE
 
     @Synchronized
@@ -34,22 +39,31 @@ class SubSpace(private val running: MutableList<Request> = CopyOnWriteArrayList(
 
     @Synchronized
     fun free(request: Request) {
-        val wasRemoved = running.removeIf { request.requestId == it.requestId }
+        if (!isWorldEnabled) {
+            val wasRemoved = waiting.removeRequest(request)
+            if (wasRemoved) return
+        }
+
+        val wasRemoved = running.removeRequest(request)
         if (!wasRemoved)
             throw Error(wrapMessage("Request ${request.requestId} was requested to remove but not present. $this}"))
         emptySlots += request.passengersNumber
         onChange()
     }
 
+    private fun MutableList<Request>.removeRequest(req: Request) = removeIf{ req.requestId == it.requestId }
+
     fun runRequestWhenPossible(request: Request) {
         currentRequest = request
+        isWorldEnabled = true
         add(request)
         while (currentRequest != null)
             Thread.sleep(100)
+        isWorldEnabled = false
     }
 
     private fun onChange() {
-        if (emptySlots == 0) return
+        if (emptySlots == 0 || !isWorldEnabled) return
         waiting.sortedByTime().forEach loop@{
             val canRun = it.canRun()
             if (canRun) {
@@ -91,9 +105,10 @@ class SubSpace(private val running: MutableList<Request> = CopyOnWriteArrayList(
 
     override fun toString(): String {
         return """SubSpace(
-            |   running=${running.sortedByTime()},
-            |   waiting=${waiting.sortedByTime()},
-            |   currentRequest=$currentRequest,
+            |   isActive=$isWorldEnabled
+            |   running=${running.sortedByTime()}
+            |   waiting=${waiting.sortedByTime()}
+            |   currentRequest=$currentRequest
             |   emptySlots=$emptySlots
             |)""".trimMargin()
     }

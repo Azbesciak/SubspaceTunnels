@@ -25,12 +25,12 @@ object SubspaceTunnels {
         launch {
             psycho.run()
         }
-        waitForTheEnd(psycho)
+        waitForTheEnd(rank, psycho)
         MPI.Finalize()
         exitProcess(0)
     }
 
-    private fun waitForTheEnd(psycho: Psycho) {
+    private fun waitForTheEnd(rank: Int, psycho: Psycho) {
         while (true) {
             val file = File("status")
             if (file.exists())
@@ -42,8 +42,12 @@ object SubspaceTunnels {
                                 log("End requested")
                                 return
                             }
-                            contains("subspace") -> {
-                                psycho.showSubspace()
+                            any {it.showSubspace()} -> {
+                                val activeOnly = find {it.showSubspace()}!!.endsWith("!")
+                                if (rank == 0) {
+                                    println("--------------------------------------------")
+                                }
+                                psycho.showSubspace(activeOnly)
                                 Thread.sleep(2000)
                             }
                             any {it.findLevel() } -> {
@@ -57,6 +61,8 @@ object SubspaceTunnels {
                 } catch (t: Throwable) {}
         }
     }
+
+    private fun String.showSubspace() = matches("subspace(!)?".toRegex())
     private fun String.findLevel() = matches("level=\\d+".toRegex())
 }
 

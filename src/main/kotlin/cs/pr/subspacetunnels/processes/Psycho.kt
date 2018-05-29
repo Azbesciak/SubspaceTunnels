@@ -18,7 +18,9 @@ class Psycho(world: WorldProxy) : Process(world, SubSpace()) {
         subprocesses.forEach { it.stop() }
     }
 
-    fun showSubspace() {
+    fun showSubspace(onlyActive: Boolean) {
+        if (onlyActive && !subSpace.isWorldEnabled)
+            return
         log(subSpace.toString(), 999)
     }
 

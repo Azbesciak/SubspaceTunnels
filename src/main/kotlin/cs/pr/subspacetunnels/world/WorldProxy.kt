@@ -10,7 +10,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 
 class WorldProxy(private val world: Intracomm) {
     companion object {
-        const val SYNCH_DELAY = 10L
+        const val SYNCH_DELAY = 1L
     }
 
     private val bcastReceivers = (0 until world.Size()).filter { it != world.Rank() }.toList()
