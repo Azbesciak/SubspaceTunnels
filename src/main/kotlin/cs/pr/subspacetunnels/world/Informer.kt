@@ -11,7 +11,7 @@ object Informer {
         this.id = id
     }
     fun log(message: String, level: Int = 0) {
-        if (level >= loggingLevel && message.startsWith("waiting for"))
+        if (level >= loggingLevel)
             println(wrapMessage(message))
     }
 
