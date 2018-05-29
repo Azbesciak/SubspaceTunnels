@@ -71,7 +71,7 @@ run {
 
 task findMachines(type: JavaExec) {
     classpath sourceSets.main.runtimeClasspath
-    main = "cs.pr.subspacetunnels.SshConnectorChecker"
+    main = "cs.pr.subspacetunnels.tools.SshConnectorChecker"
     standardInput = System.in
 }
 

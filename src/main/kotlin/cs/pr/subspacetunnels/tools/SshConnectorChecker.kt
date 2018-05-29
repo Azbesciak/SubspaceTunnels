@@ -3,6 +3,7 @@ package cs.pr.subspacetunnels.tools
 import java.io.InputStreamReader
 import java.io.BufferedReader
 import java.io.File
+import kotlin.streams.toList
 
 
 object SshConnectorChecker {
@@ -12,8 +13,11 @@ object SshConnectorChecker {
     @JvmStatic
     fun main(args: Array<String>) {
         val machines = labs.flatMap { l -> numbers.map { n -> "lab-$l-$n" } }
+                .parallelStream()
                 .map { it to execCmd("ssh -tt $it") }
-                .filter { it.second }.joinToString("\n") { it.first }
+                .filter { it.second }
+                .toList()
+                .joinToString("\n") { it.first }
         File("machines").printWriter().use { out ->
             out.print(machines)
         }
