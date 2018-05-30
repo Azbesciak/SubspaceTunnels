@@ -65,7 +65,7 @@ kotlin {
 run {
     main = 'runtime.starter.MPJRun'
     classpath = mpjStarter
-    args mainClassName, '-cp', mpjClasspath.asPath, '-np', 30//, "-dev", "niodev"
+    args mainClassName, '-cp', mpjClasspath.asPath, '-np', 70//, "-dev", "niodev"
     dependsOn classes
 }
 

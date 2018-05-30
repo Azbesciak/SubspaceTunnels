@@ -1,15 +1,15 @@
 package cs.pr.subspacetunnels.world
 
+import cs.pr.subspacetunnels.SubspaceSettings
 import cs.pr.subspacetunnels.world.Informer.log
 import cs.pr.subspacetunnels.world.Informer.wrapMessage
 import java.util.concurrent.CopyOnWriteArrayList
+import kotlin.system.exitProcess
 
-class SubSpace(private val running: MutableList<Request> = CopyOnWriteArrayList(),
+class SubSpace(subspaceSettings: SubspaceSettings,
+        private val running: MutableList<Request> = CopyOnWriteArrayList(),
                private val waiting: MutableList<Request> = CopyOnWriteArrayList()) {
-    companion object {
-        const val MAX_PASSENGERS = 10
-        const val SUBSPACE_SIZE = 40
-    }
+    val SUBSPACE_SIZE = subspaceSettings.getInt("subspace-size")
 
     @Volatile
     private var currentRequest: Request? = null
@@ -38,6 +38,13 @@ class SubSpace(private val running: MutableList<Request> = CopyOnWriteArrayList(
     }
 
     @Synchronized
+    fun finishTravel(request: Request) {
+        free(request)
+        currentRequest = null
+        isWorldEnabled = false
+    }
+
+    @Synchronized
     fun free(request: Request) {
         if (!isWorldEnabled) {
             val wasRemoved = waiting.removeRequest(request)
@@ -45,8 +52,10 @@ class SubSpace(private val running: MutableList<Request> = CopyOnWriteArrayList(
         }
 
         val wasRemoved = running.removeRequest(request)
-        if (!wasRemoved)
-            throw Error(wrapMessage("Request ${request.requestId} was requested to remove but not present. $this}"))
+        if (!wasRemoved){
+            log(wrapMessage("Request ${request.requestId} was requested to remove but not present. $this}"))
+            exitProcess(-1)
+        }
         emptySlots += request.passengersNumber
         onChange()
     }
@@ -54,12 +63,16 @@ class SubSpace(private val running: MutableList<Request> = CopyOnWriteArrayList(
     private fun MutableList<Request>.removeRequest(req: Request) = removeIf{ req.requestId == it.requestId }
 
     fun runRequestWhenPossible(request: Request) {
+        unlockWorldWithRequest(request)
+        while (currentRequest?.isRunning == false)
+            Thread.sleep(100)
+    }
+
+    @Synchronized
+    private fun unlockWorldWithRequest(request: Request) {
         currentRequest = request
         isWorldEnabled = true
         add(request)
-        while (currentRequest != null)
-            Thread.sleep(100)
-        isWorldEnabled = false
     }
 
     private fun onChange() {
@@ -68,9 +81,6 @@ class SubSpace(private val running: MutableList<Request> = CopyOnWriteArrayList(
             val canRun = it.canRun()
             if (canRun) {
                 runRequest(it)
-                if (currentRequest?.requestId == it.requestId) {
-                    currentRequest = null
-                }
             } else {
                 log("could not run $it")
                 return

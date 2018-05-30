@@ -21,7 +21,7 @@ object SubspaceTunnels {
         println("$size of $rank is running")
         Request.logType = LogType.TRAVEL
         Informer.init(rank)
-        val psycho = Psycho(WorldProxy(world))
+        val psycho = Psycho(WorldProxy(world), SubspaceSettings("config.properties"))
         launch {
             psycho.run()
         }

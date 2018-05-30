@@ -46,6 +46,7 @@ class WorldProxy(private val world: Intracomm) {
 
     fun receiveRequests(): Request =
             receiveMessages<Request>(Tag.REQUEST_TAG).also {
+                if (it.isRunning) return@also
                 lastRequests[it.senderId]!!.run {
                     add(RequestView(it.requestId))
                     log("Updated request from ${it.senderId}: $this")

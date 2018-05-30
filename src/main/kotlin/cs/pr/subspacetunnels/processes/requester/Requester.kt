@@ -1,16 +1,15 @@
 package cs.pr.subspacetunnels.processes.requester
 
+import cs.pr.subspacetunnels.SubspaceSettings
 import cs.pr.subspacetunnels.processes.Process
 import cs.pr.subspacetunnels.world.*
 import cs.pr.subspacetunnels.world.Informer.log
 
-class Requester(world: WorldProxy, subSpace: SubSpace) : Process(world, subSpace) {
-    companion object {
-        private const val MIN_DELAY = 50
-        private const val MAX_DELAY = 300
-        private const val SPEED_UNIT_VALUE = 50
-    }
-    private val requestGenerator = RequestGenerator(id, gen)
+class Requester(world: WorldProxy, subSpace: SubSpace, settings: SubspaceSettings) : Process(world, subSpace) {
+    private val MIN_DELAY = settings.getInt("min-request-delay")
+    private val MAX_DELAY = settings.getInt("max-request-delay")
+    private val BASE_SPEED = settings.getInt("base-speed")
+    private val requestGenerator = RequestGenerator(id, gen, settings)
 
     override fun run() {
         if (isRunning.getAndSet(true)) return
@@ -34,13 +33,13 @@ class Requester(world: WorldProxy, subSpace: SubSpace) : Process(world, subSpace
     }
 
     private fun waitTillPassengersWillTransfer(request: Request) {
-        val timeRequired = request.passengerType.speed * SPEED_UNIT_VALUE
+        val timeRequired = request.passengerType.speed * BASE_SPEED
         Thread.sleep(timeRequired.toLong())
     }
 
     private fun onTravelFinish(request: Request) {
         log("travel of request ${request.requestId} is finished")
-        subSpace.free(request)
+        subSpace.finishTravel(request)
         world.sendRelease(request)
     }
 }

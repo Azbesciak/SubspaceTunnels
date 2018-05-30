@@ -1,17 +1,15 @@
 package cs.pr.subspacetunnels.processes.requester
 
+import cs.pr.subspacetunnels.SubspaceSettings
 import cs.pr.subspacetunnels.world.Message
 import cs.pr.subspacetunnels.world.PassengerType
 import cs.pr.subspacetunnels.world.Request
-import cs.pr.subspacetunnels.world.SubSpace
 import java.util.*
 
-class RequestGenerator(private val id: Int, private val gen: Random) {
-
-    companion object {
-        private const val ALIEN_THRESHOLD = 0.1
-        private const val COURIER_THRESHOLD = 0.4
-    }
+class RequestGenerator(private val id: Int, private val gen: Random, settings: SubspaceSettings) {
+    private val ALIEN_THRESHOLD = settings.getDouble("alien-probability")
+    private val COURIER_THRESHOLD = ALIEN_THRESHOLD + settings.getDouble("courier-probability")
+    val MAX_PASSENGERS = settings.getInt("max-passengers")
 
     fun generateRequest(): Request {
         val passengerType = getPassengerType()
@@ -31,7 +29,7 @@ class RequestGenerator(private val id: Int, private val gen: Random) {
     private fun getPassengersCount(passengerType: PassengerType) =
             when (passengerType) {
                 PassengerType.COURIER, PassengerType.ALIEN -> 1
-                PassengerType.COMMON -> gen.nextInt(SubSpace.MAX_PASSENGERS)
+                PassengerType.COMMON -> gen.nextInt(MAX_PASSENGERS)
                 PassengerType.NULL -> throw Error("null type")
             }
 }
