@@ -10,8 +10,8 @@
 ## Algorytm
 ### Struktury
 ```` kotlin
-enum class PassengerType {
-    COMMON, COURIER, ALIEN
+enum class PassengerType(val transferTime) {
+    COURIER(1), COMMON(2), ALIEN(3)
 }
 
 open class Message(

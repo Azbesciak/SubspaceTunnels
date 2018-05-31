@@ -31,12 +31,12 @@ class SubSpace(subspaceSettings: SubspaceSettings,
     }
 
     @Synchronized
-    private fun runRequest(request: Request) {
-        waiting -= request.requestId
-        request.isRunning = true
-        emptySlots -= request.passengersNumber
-        log("Running request ${request.requestId}")
-        running[request.requestId] = request
+    private fun Request.runRequest() {
+        waiting -= requestId
+        isRunning = true
+        emptySlots -= passengersNumber
+        log("Running request $requestId")
+        running[requestId] = this
     }
 
     @Synchronized
@@ -91,9 +91,8 @@ class SubSpace(subspaceSettings: SubspaceSettings,
     private fun onChange() {
         if (emptySlots == 0 || !isWorldEnabled) return
         waiting.sortedByTime().forEach loop@{
-            val canRun = it.canRun()
-            if (canRun) {
-                runRequest(it)
+            if (it.canRun()) {
+                it.runRequest()
             } else {
                 log("could not run $it")
                 return
@@ -104,7 +103,7 @@ class SubSpace(subspaceSettings: SubspaceSettings,
     private fun Map<*, Request>.sortedByTime() =
             values.sortedWith(compareBy(
                 Request::time,
-                { it.passengerType.speed },
+                { it.passengerType.transferTime },
                 Request::passengersNumber,
                 Request::senderId
             ))
@@ -116,7 +115,6 @@ class SubSpace(subspaceSettings: SubspaceSettings,
             PassengerType.COURIER -> running.containsOnlyCouriers()
             PassengerType.COMMON -> running.hasNoAlien()
             PassengerType.ALIEN -> true
-            PassengerType.NULL -> throw Error("Null type")
         }
     }
 

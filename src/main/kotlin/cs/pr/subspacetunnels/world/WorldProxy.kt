@@ -76,7 +76,7 @@ class WorldProxy(private val world: Intracomm) {
                 }
                 requestWasFound = true
             } else {
-                log("waiting for ${acceptance.lastSentRequestId}")
+                log("waiting for ${acceptance.lastSentRequestId}", -1)
                 Thread.sleep(SYNCH_DELAY)
             }
         }

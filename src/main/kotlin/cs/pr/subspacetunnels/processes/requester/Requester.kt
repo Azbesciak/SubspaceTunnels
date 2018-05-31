@@ -8,7 +8,7 @@ import cs.pr.subspacetunnels.world.Informer.log
 class Requester(world: WorldProxy, subSpace: SubSpace, settings: SubspaceSettings) : Process(world, subSpace) {
     private val MIN_DELAY = settings.getInt("min-request-delay")
     private val MAX_DELAY = settings.getInt("max-request-delay")
-    private val BASE_SPEED = settings.getInt("base-speed")
+    private val BASE_SPEED = settings.getInt("base-transfer-time")
     private val requestGenerator = RequestGenerator(id, gen, settings)
 
     override fun run() {
@@ -33,7 +33,7 @@ class Requester(world: WorldProxy, subSpace: SubSpace, settings: SubspaceSetting
     }
 
     private fun waitTillPassengersWillTransfer(request: Request) {
-        val timeRequired = request.passengerType.speed * BASE_SPEED
+        val timeRequired = request.passengerType.transferTime * BASE_SPEED
         Thread.sleep(timeRequired.toLong())
     }
 

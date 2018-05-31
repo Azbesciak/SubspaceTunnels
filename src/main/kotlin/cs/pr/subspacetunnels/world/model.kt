@@ -3,8 +3,8 @@ package cs.pr.subspacetunnels.world
 import java.io.Serializable
 import java.util.*
 
-enum class PassengerType(val speed: Int) {
-    COMMON(2), COURIER(3), ALIEN(1), NULL(999);
+enum class PassengerType(val transferTime: Int) {
+    COURIER(1), COMMON(2), ALIEN(3);
 }
 
 open class Message(

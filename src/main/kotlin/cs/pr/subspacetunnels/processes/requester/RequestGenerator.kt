@@ -29,7 +29,6 @@ class RequestGenerator(private val id: Int, private val gen: Random, settings: S
     private fun getPassengersCount(passengerType: PassengerType) =
             when (passengerType) {
                 PassengerType.COURIER, PassengerType.ALIEN -> 1
-                PassengerType.COMMON -> gen.nextInt(MAX_PASSENGERS)
-                PassengerType.NULL -> throw Error("null type")
+                PassengerType.COMMON -> gen.nextInt(MAX_PASSENGERS - 1) + 1
             }
 }
