@@ -7,7 +7,7 @@ import cs.pr.subspacetunnels.world.Informer.log
 import cs.pr.subspacetunnels.world.SubSpace
 import cs.pr.subspacetunnels.world.WorldProxy
 
-class Psycho(world: WorldProxy, settings: SubspaceSettings) : Process(world, SubSpace(settings)) {
+class Psycho(world: WorldProxy, settings: SubspaceSettings) : Process(world, SubSpace(settings, world.size())) {
     private val subprocesses = listOf(Requester(world, subSpace, settings), Messenger(world, subSpace))
     override fun run() {
         subprocesses.forEach {

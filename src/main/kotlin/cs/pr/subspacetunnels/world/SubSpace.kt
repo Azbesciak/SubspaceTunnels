@@ -7,8 +7,10 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.system.exitProcess
 
 class SubSpace(subspaceSettings: SubspaceSettings,
+               private val releasesLimit: Int,
                private val running: MutableMap<String, Request> = ConcurrentHashMap(),
-               private val waiting: MutableMap<String, Request> = ConcurrentHashMap()) {
+               private val waiting: MutableMap<String, Request> = ConcurrentHashMap(),
+               private val releases: MutableMap<String, Message> = ConcurrentHashMap()) {
     val SUBSPACE_SIZE = subspaceSettings.getInt("subspace-size")
 
     @Volatile
@@ -50,14 +52,25 @@ class SubSpace(subspaceSettings: SubspaceSettings,
             val removedRequest = waiting.remove(message)
             if (removedRequest != null) return
         }
+        releases[message.requestId] = message
 
-        val removedRequest = running.remove(message)
-        if (removedRequest == null){
-            log(wrapMessage("Request ${message.requestId} was requested to remove but not present. $this}"))
-            exitProcess(-1)
+        running.sortedByTime().forEach {
+            val removedRelease = releases.remove(it.requestId)
+            when {
+                removedRelease != null -> {
+                    running -= it.requestId
+                    emptySlots += it.passengersNumber
+                }
+                releases.size > releasesLimit -> {
+                    log(wrapMessage("Request ${message.requestId} was requested to remove but not present. $this}"))
+                    exitProcess(-1)
+                }
+                else -> {
+                    onChange()
+                    return
+                }
+            }
         }
-        emptySlots += removedRequest.passengersNumber
-        onChange()
     }
 
     private fun MutableMap<String, Request>.remove(req: Message) = remove(req.requestId)
@@ -118,6 +131,7 @@ class SubSpace(subspaceSettings: SubspaceSettings,
             |   isActive=$isWorldEnabled
             |   running=${running.sortedByTime()}
             |   waiting=${waiting.sortedByTime()}
+            |   releases=${releases.values.sortedBy { it.time }}
             |   currentRequest=$currentRequest
             |   emptySlots=$emptySlots
             |)""".trimMargin()
