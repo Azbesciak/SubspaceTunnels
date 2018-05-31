@@ -54,7 +54,7 @@ class WorldProxy(private val world: Intracomm) {
             }
 
     fun receiveAccepts(request: Request) {
-        var left = bcastReceivers - 1
+        var left = bcastReceivers
         while (left.isNotEmpty()) {
             val acceptance = receiveMessages<Acceptance>(Tag.ACCEPT_TAG)
             synchronizeWithAcceptSender(acceptance)

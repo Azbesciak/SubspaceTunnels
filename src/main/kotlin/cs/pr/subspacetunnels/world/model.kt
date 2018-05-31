@@ -4,7 +4,7 @@ import java.io.Serializable
 import java.util.*
 
 enum class PassengerType(val speed: Int) {
-    COMMON(2), COURIER(1), ALIEN(3), NULL(999);
+    COMMON(2), COURIER(3), ALIEN(1), NULL(999);
 }
 
 open class Message(
