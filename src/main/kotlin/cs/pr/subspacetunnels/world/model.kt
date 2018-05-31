@@ -33,8 +33,8 @@ class Release(
 class Request(
         val passengerType: PassengerType,
         val passengersNumber: Int,
-        requestId: String = "",
-        senderId: Int = 0,
+        requestId: String,
+        senderId: Int,
         var isRunning: Boolean = false
 ) : Message(requestId, senderId) {
     companion object {
