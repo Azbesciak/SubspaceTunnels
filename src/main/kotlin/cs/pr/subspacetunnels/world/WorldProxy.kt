@@ -31,12 +31,12 @@ class WorldProxy(private val world: Intracomm) {
         sendToAll(request, Tag.REQUEST_TAG)
     }
 
-    fun sendRelease(release: Request) {
-        log("sending release for request ${release.requestId}")
+    fun sendRelease(release: Release) {
+        log("sending release ${release.releaseId} for request ${release.requestId}")
         sendToAll(release, Tag.REQUEST_TAG)
     }
 
-    private fun sendToAll(message: Request, tag: Tag) {
+    private inline fun <reified M: Message>sendToAll(message: M, tag: Tag) {
         message.time = ++time
         val reqPacked = arrayOf(message)
         bcastReceivers.forEach {
@@ -44,13 +44,13 @@ class WorldProxy(private val world: Intracomm) {
         }
     }
 
-    fun receiveRequests(): Request =
-            receiveMessages<Request>(Tag.REQUEST_TAG).also {
-                if (it.isRunning) return@also
-                lastRequests[it.senderId]!!.run {
-                    add(RequestView(it.requestId))
-                    log("Updated request from ${it.senderId}: $this")
-                }
+    fun receiveMessages(): Message =
+            receiveMessages<Message>(Tag.REQUEST_TAG).also {
+                if (it is Request)
+                    lastRequests[it.senderId]!!.run {
+                        add(RequestView(it.requestId))
+                        log("Updated request from ${it.senderId}: $this")
+                    }
             }
 
     fun receiveAccepts(request: Request) {

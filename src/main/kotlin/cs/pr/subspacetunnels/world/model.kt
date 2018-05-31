@@ -17,9 +17,17 @@ open class Message(
     }
 }
 
-
 enum class LogType {
     BASIC, VERBOSE, TRAVEL
+}
+
+class Release(
+        val releaseId: String,
+        requestId: String,
+        senderId: Int
+): Message(requestId, senderId) {
+    override fun toString() =
+            "Release(releaseId=$releaseId, requestId=$requestId, sender=$senderId, time=$time)"
 }
 
 class Request(
@@ -29,15 +37,13 @@ class Request(
         senderId: Int = 0,
         var isRunning: Boolean = false
 ) : Message(requestId, senderId) {
-
     companion object {
-
         var logType = LogType.BASIC
     }
 
     override fun toString(): String {
         return when (logType) {
-            LogType.VERBOSE -> "${if (isRunning) "Release" else "Request"}(type=$passengerType," +
+            LogType.VERBOSE -> "Request(type=$passengerType," +
                     " passengersNumber=$passengersNumber," +
                     " isRunning=$isRunning," +
                     " requestId=$requestId," +
@@ -48,7 +54,6 @@ class Request(
         }
     }
 }
-
 
 class Acceptance(
         val acceptId: String,

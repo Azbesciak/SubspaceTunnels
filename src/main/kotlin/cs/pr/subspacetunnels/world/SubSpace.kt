@@ -3,12 +3,12 @@ package cs.pr.subspacetunnels.world
 import cs.pr.subspacetunnels.SubspaceSettings
 import cs.pr.subspacetunnels.world.Informer.log
 import cs.pr.subspacetunnels.world.Informer.wrapMessage
-import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.system.exitProcess
 
 class SubSpace(subspaceSettings: SubspaceSettings,
-        private val running: MutableList<Request> = CopyOnWriteArrayList(),
-               private val waiting: MutableList<Request> = CopyOnWriteArrayList()) {
+               private val running: MutableMap<String, Request> = ConcurrentHashMap(),
+               private val waiting: MutableMap<String, Request> = ConcurrentHashMap()) {
     val SUBSPACE_SIZE = subspaceSettings.getInt("subspace-size")
 
     @Volatile
@@ -23,18 +23,18 @@ class SubSpace(subspaceSettings: SubspaceSettings,
 
     @Synchronized
     fun add(request: Request) {
-        waiting.add(request)
+        waiting[request.requestId] = request
         log("$request added to waiting")
         onChange()
     }
 
     @Synchronized
     private fun runRequest(request: Request) {
-        waiting.remove(request)
+        waiting -= request.requestId
         request.isRunning = true
         emptySlots -= request.passengersNumber
         log("Running request ${request.requestId}")
-        running.add(request)
+        running[request.requestId] = request
     }
 
     @Synchronized
@@ -45,22 +45,22 @@ class SubSpace(subspaceSettings: SubspaceSettings,
     }
 
     @Synchronized
-    fun free(request: Request) {
+    fun free(message: Message) {
         if (!isWorldEnabled) {
-            val wasRemoved = waiting.removeRequest(request)
-            if (wasRemoved) return
+            val removedRequest = waiting.remove(message)
+            if (removedRequest != null) return
         }
 
-        val wasRemoved = running.removeRequest(request)
-        if (!wasRemoved){
-            log(wrapMessage("Request ${request.requestId} was requested to remove but not present. $this}"))
+        val removedRequest = running.remove(message)
+        if (removedRequest == null){
+            log(wrapMessage("Request ${message.requestId} was requested to remove but not present. $this}"))
             exitProcess(-1)
         }
-        emptySlots += request.passengersNumber
+        emptySlots += removedRequest.passengersNumber
         onChange()
     }
 
-    private fun MutableList<Request>.removeRequest(req: Request) = removeIf{ req.requestId == it.requestId }
+    private fun MutableMap<String, Request>.remove(req: Message) = remove(req.requestId)
 
     fun runRequestWhenPossible(request: Request) {
         unlockWorldWithRequest(request)
@@ -88,8 +88,8 @@ class SubSpace(subspaceSettings: SubspaceSettings,
         }
     }
 
-    private fun List<Request>.sortedByTime() =
-            sortedWith(compareBy(
+    private fun Map<*, Request>.sortedByTime() =
+            values.sortedWith(compareBy(
                 Request::time,
                 { it.passengerType.speed },
                 Request::passengersNumber,
@@ -107,11 +107,11 @@ class SubSpace(subspaceSettings: SubspaceSettings,
         }
     }
 
-    private fun List<Request>.containsOnlyCouriers(): Boolean =
-            all { it.passengerType == PassengerType.COURIER }
+    private fun Map<*, Request>.containsOnlyCouriers(): Boolean =
+            all { it.value.passengerType == PassengerType.COURIER }
 
-    private fun List<Request>.hasNoAlien(): Boolean =
-            count { it.passengerType == PassengerType.ALIEN } == 0
+    private fun Map<*, Request>.hasNoAlien(): Boolean =
+            count { it.value.passengerType == PassengerType.ALIEN } == 0
 
     override fun toString(): String {
         return """SubSpace(

@@ -40,6 +40,6 @@ class Requester(world: WorldProxy, subSpace: SubSpace, settings: SubspaceSetting
     private fun onTravelFinish(request: Request) {
         log("travel of request ${request.requestId} is finished")
         subSpace.finishTravel(request)
-        world.sendRelease(request)
+        world.sendRelease(Release(Message.createId(), request.requestId, id))
     }
 }
