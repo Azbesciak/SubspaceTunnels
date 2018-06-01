@@ -84,6 +84,8 @@ fun onTravelFinish(request: Request) {
     subSpace.finishTravel(request)
     world.sendRelease(Release(Message.createId(), request.requestId, id))
 }
+
+
 // Subspace
 fun runRequestWhenPossible(request: Request) {
     unlockWorldWithRequest(request)
@@ -120,6 +122,12 @@ fun Request.canRun(): Boolean {
         PassengerType.ALIEN -> true
     }
 }
+
+fun finishTravel(request: Request) {
+        free(request)
+        currentRequest = null
+        isWorldEnabled = false
+    }
 ````
 
 ##### Proces nasłuchujący na nowe wiadomości
