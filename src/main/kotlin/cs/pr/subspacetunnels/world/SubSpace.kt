@@ -90,7 +90,7 @@ class SubSpace(subspaceSettings: SubspaceSettings,
 
     private fun onChange() {
         if (emptySlots == 0 || !isWorldEnabled) return
-        waiting.sortedByTime().forEach loop@{
+        waiting.sortedByTime().forEach {
             if (it.canRun()) {
                 it.runRequest()
             } else {
