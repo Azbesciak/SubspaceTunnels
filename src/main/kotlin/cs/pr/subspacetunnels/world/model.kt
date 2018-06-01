@@ -25,7 +25,7 @@ class Release(
         val releaseId: String,
         requestId: String,
         senderId: Int
-): Message(requestId, senderId) {
+) : Message(requestId, senderId) {
     override fun toString() =
             "Release(releaseId=$releaseId, requestId=$requestId, sender=$senderId, time=$time)"
 }

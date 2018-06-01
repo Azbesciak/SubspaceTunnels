@@ -37,7 +37,7 @@ class Release(
         val releaseId: String,
         requestId: String,
         senderId: Int
-): Message(requestId, senderId)
+) : Message(requestId, senderId)
 
 class Request(
         val passengerType: PassengerType,
@@ -45,14 +45,14 @@ class Request(
         requestId: String,
         senderId: Int,
         var isRunning: Boolean = false // flaga aktualizowana w momencie zmiany stanu na wykonywany
-): Message(requestId, senderId) {
+) : Message(requestId, senderId) {
    
 class Acceptance(
         val acceptId: String,
         requestId: String,
         senderId: Int,
         val lastSentRequestId: String? // null w przypadku gdy dany process nie wygenerował jeszcze żądania
-): Message(requestId, senderId)
+) : Message(requestId, senderId)
 ````
 ### Szkic algorytmu
 Każdy psychokinetyk ma swoją wizję podprzestrzeni.
@@ -100,9 +100,9 @@ fun unlockWorldWithRequest(request: Request) {
 }
 
 fun add(request: Request) {
-        waiting[request.requestId] = request
-        onChange()
-    }
+    waiting[request.requestId] = request
+    onChange()
+}
 
 fun onChange() {
     if (emptySlots == 0 || !isWorldEnabled) return
@@ -124,10 +124,10 @@ fun Request.canRun(): Boolean {
 }
 
 fun finishTravel(request: Request) {
-        free(request)
-        currentRequest = null
-        isWorldEnabled = false
-    }
+    free(request)
+    currentRequest = null
+    isWorldEnabled = false
+}
 ````
 
 ##### Proces nasłuchujący na nowe wiadomości
