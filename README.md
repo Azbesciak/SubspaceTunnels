@@ -56,7 +56,7 @@ class Acceptance(
 ````
 ### Szkic algorytmu
 Każdy psychokinetyk ma swoją wizję podprzestrzeni.
-Składa się ona z dwóch kolekcji - oczekujących requestów oraz obecnie wykonywanych.
+Składa się ona z dwóch kolekcji - oczekujących requestów(`waiting`) oraz obecnie wykonywanych (`running`).
 Ponadto, urzymywany jest również indywidualny timer logiczny wpomagający synchronizację pomiędzy procesami.
 Zegar ten aktualizowany wraz z przybyciem nowej wiadomości według wzorca
 ````kotlin
@@ -152,8 +152,9 @@ Całkowita złożoność komunikacyjna wynosi więc 3(n-1), natomiast czasowa 3.
 Ze względu na odrębne typy otrzymywanych wiadomości oraz możliwość zrównoleglenia, wiadomości typu `Request` oraz `Release`
 wysyłane są z tym samym tagiem, natomiast `Acceptance` osobnym. Implikuje to konieczność manualnej synchronizacji otrzymywanych
 wiadomości, ponieważ `Open MPI` gwarantuje kanał FIFO jedynie w obrębie kombinacji `communicator`/`tag`/`rank`.
+
 Z tego też powodu konieczne jest buforowanie odpowiedzi typu `Acceptance` - możemy otrzymać taką wiadomość dla żądania
 przebywającego jeszcze w kolejce `waiting` ponieważ wiadomości zwalniające dla
-wykonywanych żądań nie dotarły jeszcze do zadanego wykonawcy (mimo ich wysłania).
+wykonywanych żądań nie dotarły jeszcze do żadanego wykonawcy (mimo ich wysłania).
 Z tego samego też powodu każda taka wiadomość zawiera informację o ostatnio generowanym przez wysyłający ją process żądaniu (`Request`).
 Wiadomość typu `Acceptance` nie powinna zostać obsłużona do czasu otrzymania danego żądania.
